@@ -13,7 +13,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit",
     "security:okta": "node scripts/okta-log-audit.mjs",
-    "test:security": "node --test scripts/*.test.mjs"
+    "test:security": "node --test scripts/*.test.mjs && tsx --test scripts/*.test.ts"
   },
   "keywords": [
     "cli",

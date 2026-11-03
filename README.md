@@ -214,20 +214,20 @@ MIT
 ## Security and Okta System Log audit
 
 **Headless mode is read-only by default for tools that require approval.** Tools that
-execute shell commands or modify files are rejected in \`--prompt\` mode unless
-\`--allow-unsafe-tools\` is explicitly supplied. Never use that flag with untrusted
+execute shell commands or modify files are rejected in `--prompt` mode unless
+`--allow-unsafe-tools` is explicitly supplied. Never use that flag with untrusted
 prompts, web content, or CI-generated instructions. Interactive mode continues to
-request per-operation confirmation. Prefer \`GROK_API_KEY\` through the environment
-instead of \`--api-key\`, which can expose a secret in process arguments.
+request per-operation confirmation. Prefer `GROK_API_KEY` through the environment
+instead of `--api-key`, which can expose a secret in process arguments.
 
 Analyze a **locally exported System Log from an Okta tenant you are authorized to administer**:
 
-\`\`\`bash
+```bash
 npm run security:okta -- ./okta-system-log.json
 npm run test:security
-\`\`\`
+```
 
-The offline auditor accepts a JSON array, a single event, an \`{"events":[...]}\`
+The offline auditor accepts a JSON array, a single event, an `{"events":[...]}`
 wrapper, or NDJSON. It flags repeated failed sign-ins (at least five per actor
 per UTC hour), administrator privilege grants, MFA resets/deactivations, blocked
 requests, and user-reported suspicious activity. Outputs contain hashed actor
