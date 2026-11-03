@@ -105,8 +105,8 @@ grok -d /path/to/project
 Process a single prompt and exit (useful for scripting and automation):
 ```bash
 grok --prompt "show me the package.json file"
-grok -p "create a new file called example.js with a hello world function"
-grok --prompt "run npm test and show me the results" --directory /path/to/project
+grok -p "create a new file called example.js with a hello world function" --allow-unsafe-tools
+grok --prompt "run npm test and show me the results" --directory /path/to/project --allow-unsafe-tools
 ```
 
 This mode is particularly useful for:
@@ -142,6 +142,7 @@ Options:
   -u, --base-url <url>   Grok API base URL (or set GROK_BASE_URL env var)
   -m, --model <model>    AI model to use (e.g., grok-4-latest, grok-3-latest)
   -p, --prompt <prompt>  process a single prompt and exit (headless mode)
+      --allow-unsafe-tools explicitly approve shell and write actions in headless mode
   -h, --help             display help for command
 ```
 
@@ -208,3 +209,29 @@ npm run typecheck
 ## License
 
 MIT
+
+
+## Security and Okta System Log audit
+
+**Headless mode is read-only by default for tools that require approval.** Tools that
+execute shell commands or modify files are rejected in \`--prompt\` mode unless
+\`--allow-unsafe-tools\` is explicitly supplied. Never use that flag with untrusted
+prompts, web content, or CI-generated instructions. Interactive mode continues to
+request per-operation confirmation. Prefer \`GROK_API_KEY\` through the environment
+instead of \`--api-key\`, which can expose a secret in process arguments.
+
+Analyze a **locally exported System Log from an Okta tenant you are authorized to administer**:
+
+\`\`\`bash
+npm run security:okta -- ./okta-system-log.json
+npm run test:security
+\`\`\`
+
+The offline auditor accepts a JSON array, a single event, an \`{"events":[...]}\`
+wrapper, or NDJSON. It flags repeated failed sign-ins (at least five per actor
+per UTC hour), administrator privilege grants, MFA resets/deactivations, blocked
+requests, and user-reported suspicious activity. Outputs contain hashed actor
+identifiers rather than email addresses or IPs. No network request is sent and
+no Okta credential is needed. Exit codes: **0** (no alerts), **1** (alerts), **2**
+(input/processing error). Findings are triage indicators, not evidence of an
+Okta infrastructure breach. Do not commit actual logs, user data, or tokens.
