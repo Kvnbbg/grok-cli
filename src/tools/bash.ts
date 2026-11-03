@@ -5,6 +5,9 @@ import { ConfirmationService } from '../utils/confirmation-service';
 
 const execAsync = promisify(exec);
 
+// Escape one POSIX shell argument; preserve confirmation for all subprocess calls.
+const shellQuote = (value: string): string => "'" + value.replace(/'/g, "'\\''") + "'";
+
 export class BashTool {
   private currentDirectory: string = process.cwd();
   private confirmationService = ConfirmationService.getInstance();
@@ -73,14 +76,14 @@ export class BashTool {
   }
 
   async listFiles(directory: string = '.'): Promise<ToolResult> {
-    return this.execute(`ls -la ${directory}`);
+    return this.execute(`ls -la -- ${shellQuote(directory)}`);
   }
 
   async findFiles(pattern: string, directory: string = '.'): Promise<ToolResult> {
-    return this.execute(`find ${directory} -name "${pattern}" -type f`);
+    return this.execute(`find ${shellQuote(directory)} -type f -name ${shellQuote(pattern)}`);
   }
 
   async grep(pattern: string, files: string = '.'): Promise<ToolResult> {
-    return this.execute(`grep -r "${pattern}" ${files}`);
+    return this.execute(`grep -r -- ${shellQuote(pattern)} ${shellQuote(files)}`);
   }
 }

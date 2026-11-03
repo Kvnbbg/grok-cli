@@ -65,14 +65,19 @@ async function processPromptHeadless(
   prompt: string,
   apiKey: string,
   baseURL?: string,
-  model?: string
+  model?: string,
+  allowUnsafeTools: boolean = false
 ): Promise<void> {
   try {
     const agent = new GrokAgent(apiKey, baseURL, model);
 
-    // Configure confirmation service for headless mode (auto-approve all operations)
+    // No interactive confirmation UI exists in headless mode. Deny by default.
     const confirmationService = ConfirmationService.getInstance();
-    confirmationService.setSessionFlag("allOperations", true);
+    confirmationService.resetSession();
+    confirmationService.setNonInteractiveMode(true);
+    if (allowUnsafeTools) {
+      confirmationService.setSessionFlag("allOperations", true);
+    }
 
     console.log("🤖 Processing prompt...\n");
 
@@ -117,6 +122,7 @@ async function processPromptHeadless(
             console.log(`✅ ${toolDisplay}: ${entry.content.split("\n")[0]}`);
           } else {
             console.log(`❌ ${toolDisplay}: ${entry.content}`);
+            process.exitCode = 1;
           }
           break;
       }
@@ -147,6 +153,10 @@ program
     "-p, --prompt <prompt>",
     "process a single prompt and exit (headless mode)"
   )
+  .option(
+    "--allow-unsafe-tools",
+    "explicitly allow shell execution and file changes in headless mode (dangerous)"
+  )
   .action(async (options) => {
     if (options.directory) {
       try {
@@ -175,7 +185,7 @@ program
 
       // Headless mode: process prompt and exit
       if (options.prompt) {
-        await processPromptHeadless(options.prompt, apiKey, baseURL, model);
+        await processPromptHeadless(options.prompt, apiKey, baseURL, model, Boolean(options.allowUnsafeTools));
         return;
       }
 
