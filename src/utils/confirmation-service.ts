@@ -20,6 +20,7 @@ export interface ConfirmationResult {
 export class ConfirmationService extends EventEmitter {
   private static instance: ConfirmationService;
   private skipConfirmationThisSession = false;
+  private nonInteractiveMode = false;
   private pendingConfirmation: Promise<ConfirmationResult> | null = null;
   private resolveConfirmation: ((result: ConfirmationResult) => void) | null =
     null;
@@ -53,6 +54,15 @@ export class ConfirmationService extends EventEmitter {
       (operationType === "bash" && this.sessionFlags.bashCommands)
     ) {
       return { confirmed: true };
+    }
+
+    // Headless agents must not silently approve tool actions. A trusted caller may
+    // explicitly opt in through the existing session approval mechanism.
+    if (this.nonInteractiveMode) {
+      return {
+        confirmed: false,
+        feedback: 'Headless tools are denied by default. Explicitly use --allow-unsafe-tools only for trusted prompts.',
+      };
     }
 
     // If VS Code should be opened, try to open it
@@ -128,7 +138,12 @@ export class ConfirmationService extends EventEmitter {
     return this.pendingConfirmation !== null;
   }
 
+  setNonInteractiveMode(enabled: boolean): void {
+    this.nonInteractiveMode = enabled;
+  }
+
   resetSession(): void {
+    this.nonInteractiveMode = false;
     this.sessionFlags = {
       fileOperations: false,
       bashCommands: false,

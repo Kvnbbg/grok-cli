@@ -91,3 +91,6 @@ temp/
 
 # Coding agents
 .claude/
+# Sensitive Okta System Log exports (never commit raw identity logs)
+okta-system-log*.json
+okta-system-log*.ndjson
